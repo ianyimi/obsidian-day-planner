@@ -1,12 +1,11 @@
 import { groupBy } from "lodash/fp";
 import type { CachedMetadata } from "obsidian";
-import { getAllDailyNotes, getDailyNote } from "obsidian-daily-notes-interface";
 
 import { getHeadingByText, getListItemsUnderHeading } from "../parser/parser";
 import type { DayPlannerSettings } from "../settings";
 import type { PlacedTask, Task } from "../types";
 import { createDailyNoteIfNeeded } from "../util/daily-notes";
-import { updateTaskText } from "../util/task-utils";
+import { updateTaskScheduledDay, updateTaskText } from "../util/task-utils";
 
 import type { ObsidianFacade } from "./obsidian-facade";
 
@@ -50,31 +49,19 @@ export class PlanEditor {
 
     if (moved.length > 0) {
       // todo: dayKey is the new date, make files for those
-      const [task] = await this.ensureFilesForTasks(
-        moved.map(({ task }) => task),
-      );
 
-      const noteForFile = getDailyNote(
-        window.moment(moved[0].dayKey),
-        getAllDailyNotes(),
-      );
-
-      const updated = updateTaskText(task as Task);
-
-      return Promise.all([
-        this.obsidianFacade.editFile(noteForFile.path, (contents) => {
-          // @ts-ignore
-          return this.writeTaskToFileContents(
-            updated,
-            contents,
-            noteForFile.path,
+      return Promise.all(
+        moved.map(({ dayKey, task }) => {
+          const updated = updateTaskText(updateTaskScheduledDay(task, dayKey));
+          return this.obsidianFacade.editFile(
+            task.location.path,
+            (contents) => {
+              // @ts-ignore
+              return this.updateTaskInFileContents(contents, updated);
+            },
           );
         }),
-        this.obsidianFacade.editFile(task.location.path, (contents) => {
-          // @ts-ignore
-          return this.removeTaskFromFileContents(task, contents);
-        }),
-      ]);
+      );
     }
 
     const pathToEditedTasksLookup = groupBy(
