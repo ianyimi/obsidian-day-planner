@@ -17,9 +17,9 @@ import { addMinutes, minutesToMoment, minutesToMomentOfDay } from "./moment";
 
 export function isEqualTask(a: Task, b: Task) {
   return (
-    a.id === b.id &&
-    a.startMinutes === b.startMinutes &&
-    a.durationMinutes === b.durationMinutes
+    a?.id === b?.id &&
+    a?.startMinutes === b?.startMinutes &&
+    a?.durationMinutes === b?.durationMinutes
   );
 }
 

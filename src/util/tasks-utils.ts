@@ -38,8 +38,8 @@ export function getFlatTasks(tasks: Tasks) {
 export function removeTask(task: Task, tasks: TasksForDay) {
   return {
     ...tasks,
-    noTime: tasks.noTime.filter((t) => t.id !== task.id),
-    withTime: tasks.withTime.filter((t) => t.id !== task.id),
+    noTime: tasks?.noTime.filter((t) => t.id !== task.id) ?? [],
+    withTime: tasks?.withTime.filter((t) => t.id !== task.id) ?? [],
   };
 }
 
@@ -88,8 +88,8 @@ export function moveTaskToColumn(day: Moment, task: Task, baseline: Tasks) {
 // todo: don't get tasks in daily notes here
 export function getTasksWithUpdatedDay(tasks: Tasks) {
   return Object.entries(tasks)
-    .flatMap(([dayKey, tasks]) =>
-      tasks.withTime.map((task) => ({ dayKey, task })),
+    .flatMap(
+      ([dayKey, tasks]) => tasks.withTime?.map((task) => ({ dayKey, task })),
     )
     .filter(({ dayKey, task }) => {
       const dateFromPath = task.location?.path
@@ -133,7 +133,7 @@ function getCreatedTasks(base: UnscheduledTask[], next: UnscheduledTask[]) {
 function getTasksWithUpdatedTime(base: PlacedTask[], next: PlacedTask[]) {
   const pristine = getPristine(base, next);
 
-  return difference(next, pristine).filter((task) => !task.isGhost);
+  return difference(next, pristine).filter((task) => !task?.isGhost);
 }
 
 export function getDiff(base: Tasks, next: Tasks) {
